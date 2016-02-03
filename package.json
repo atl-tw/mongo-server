@@ -1,0 +1,13 @@
+{
+  "name": "mongo-server",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Basic HTTP server for MongoDB",
+  "repository": "https://github.com/atl-tw/mongo-server",
+  "devDependencies": {},
+  "dependencies": {
+    "express": "^4.13.4",
+    "http": "0.0.0",
+    "uuid": "^2.0.1"
+  }
+}
