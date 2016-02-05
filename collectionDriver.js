@@ -23,7 +23,15 @@ CollectionDriver.prototype.findAll = function(collectionName, callback) {
     });
 };
 
-CollectionDriver.prototype.findOne = function() {
+CollectionDriver.prototype.findSensor = function(collectionName, sensorName, callback) {
+    this.getCollection(collectionName, function(error, the_collection){
+        if (error) callback(error);
+        else {
+            the_collection.find({'name':sensorName}, function(error, docs){
+                returnDocs(error, docs, callback);
+            });
+        }
+    });
 };
 
 
@@ -33,10 +41,11 @@ CollectionDriver.prototype.get = function(collectionName, id, callback) {
         else {
             var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
             if (!checkForHexRegExp.test(id)) callback({error: "invalid id"});
-            else the_collection.findOne({'_id':ObjectID(id)}, function(error,doc) {
-                if (error) callback(error);
-                else callback(null, doc);
-            });
+            else {
+                the_collection.findOne({'_id':ObjectID(id)}, function(error, docs){
+                    returnDocs(error, docs, callback);
+                });
+            }
         }
     });
 };
@@ -46,11 +55,15 @@ CollectionDriver.prototype.distinct = function(collectionName, field, callback) 
       if( error ) callback(error);
       else {
         the_collection.distinct(field, function(error, docs){
-            if (error) callback(error);
-            else callback(null, docs);
+            returnDocs(error, docs, callback);
         });
       }
     });
 };
+
+var returnDocs = function(error, doc, callback) {
+    if (error) callback(error);
+    else callback(null, doc);
+}
 
 exports.CollectionDriver = CollectionDriver;
