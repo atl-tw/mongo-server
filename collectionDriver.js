@@ -61,9 +61,32 @@ CollectionDriver.prototype.distinct = function(collectionName, field, callback) 
     });
 };
 
+CollectionDriver.prototype.findDates = function(collectionName, startDate, endDate, callback) {
+    this.getCollection(collectionName, function(error, the_collection) {
+        if(error) callback(error);
+        else {
+            var startDateObjectId = objectIdWithTimestamp(startDate);
+            var endDateObjectId = objectIdWithTimestamp(endDate);
+            the_collection.find({'_id': { '$gt': startDateObjectId, '$lt': endDateObjectId}})
+                .toArray(function(error, results){
+                    callback(null, results);
+                });
+        }
+    });
+};
+
 var returnDocs = function(error, doc, callback) {
     if (error) callback(error);
     else callback(null, doc);
+}
+
+var objectIdWithTimestamp = function(timestamp) {
+    if (typeof(timestamp) == 'string') {
+        timestamp = new Date(timestamp);
+    }
+    var hexSeconds = Math.floor(timestamp/1000).toString(16);
+    var constructedObjectId = ObjectID(hexSeconds + "0000000000000000");
+    return constructedObjectId;
 }
 
 exports.CollectionDriver = CollectionDriver;

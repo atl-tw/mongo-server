@@ -1,6 +1,7 @@
 var http = require('http');
 var express = require('express');
 var path = require('path');
+var moment = require('moment');
 var router = express.Router();
 
 var mongoClient = require('mongodb').MongoClient,
@@ -13,7 +14,7 @@ app.set('port', 4666);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-var mongoHost = 'localHost'; //A
+var mongoHost = 'localHost';
 var mongoPort = 27017;
 var collectionDriver;
 
@@ -51,17 +52,37 @@ var badUrl = function (req, res) {
     res.status(400).send({error: 'bad url', url: req.url});
 };
 
+var returnResults = function(res, error, objs) {
+      if (error) { res.status(400).send(error); }
+      else { res.status(200).send(objs); }
+}
+
 router.get('/:collection/sensor/:sensorName', function(req, res, next) {
     var params = req.params;
     var collection = params.collection;
     var sensorName = params.sensorName;
     if(sensorName) {
         collectionDriver.findSensor(collection, sensorName, function(error, objs) {
-          if (error) { res.status(400).send(error); }
-          else { console.log(objs); res.status(200).send(JSON.stringify(objs)); }
+          returnResults(res, error, objs);
         });
     } else {
         badUrl(req, res);
+    }
+});
+
+router.get('/:collection/date/:datefield', function(req, res, next) {
+    var params = req.params;
+    var collection = params.collection;
+    var date = moment(new Date(params.datefield));
+
+    if(date.isValid()) {
+        var startDate = date.format('YYYY/MM/DD');
+        var endDate = date.add(1, 'days').format('YYYY/MM/DD');
+        collectionDriver.findDates(collection, startDate, endDate, function(error, objs) {
+            returnResults(res, error, objs);
+        });
+    } else {
+        res.status(200).send({'error': 'Use valid format: yyyy-MM-dd'});
     }
 });
 
@@ -71,8 +92,7 @@ router.get('/:collection/distinct/:field', function(req, res, next) {
     var field = params.field;
     if (field) {
         collectionDriver.distinct(collection, field, function(error, objs) {
-          if (error) { res.status(400).send(error); }
-          else { res.status(200).send(objs); }
+          returnResults(res, error, objs);
         });
     } else {
         badUrl(req, res);
@@ -85,8 +105,7 @@ router.get('/:collection/:entity', function(req, res, next) {
    var collection = params.collection;
    if (entity) {
        collectionDriver.get(collection, entity, function(error, objs) {
-          if (error) { res.status(400).send(error); }
-          else { res.status(200).send(objs); }
+          returnResults(res, error, objs);
        });
    } else {
       badUrl(req, res);
