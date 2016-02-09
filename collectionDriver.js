@@ -67,7 +67,7 @@ CollectionDriver.prototype.findDates = function(collectionName, startDate, endDa
         else {
             var startDateObjectId = objectIdWithTimestamp(startDate);
             var endDateObjectId = objectIdWithTimestamp(endDate);
-            the_collection.find({'_id': { '$gt': startDateObjectId, '$lt': endDateObjectId}})
+            the_collection.find({'_id': { '$gt': startDateObjectId, '$lt': endDateObjectId}, 'motion' : 'End'})
                 .toArray(function(error, results){
                     callback(null, results);
                 });
