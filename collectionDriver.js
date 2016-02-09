@@ -27,8 +27,8 @@ CollectionDriver.prototype.findSensor = function(collectionName, sensorName, cal
     this.getCollection(collectionName, function(error, the_collection){
         if (error) callback(error);
         else {
-            the_collection.find({'name':sensorName}, function(error, docs){
-                returnDocs(error, docs, callback);
+            the_collection.find({'name':sensorName}).toArray(function(error, results){
+                callback(null, results);
             });
         }
     });
