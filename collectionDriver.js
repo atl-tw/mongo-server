@@ -1,4 +1,5 @@
 var ObjectID = require('mongodb').ObjectID;
+var _ = require('lodash');
 
 CollectionDriver = function(db) {
   this.db = db;
@@ -67,8 +68,11 @@ CollectionDriver.prototype.findDates = function(collectionName, startDate, endDa
         else {
             var startDateObjectId = objectIdWithTimestamp(startDate);
             var endDateObjectId = objectIdWithTimestamp(endDate);
-            the_collection.find({'_id': { '$gt': startDateObjectId, '$lt': endDateObjectId}, 'motion' : 'End'})
+            the_collection.find({'_id': { '$gt': startDateObjectId, '$lt': endDateObjectId}, 'motion' : 'End'}, {'name':1, 'time':1})
                 .toArray(function(error, results){
+                    _(results).forEach(function(result){
+                        result.timestamp = ObjectID(result._id).getTimestamp();
+                    });
                     callback(null, results);
                 });
         }
