@@ -1,5 +1,6 @@
 var ObjectID = require('mongodb').ObjectID;
 var _ = require('lodash');
+var moment = require('moment');
 
 CollectionDriver = function(db) {
   this.db = db;
@@ -68,12 +69,30 @@ CollectionDriver.prototype.findDates = function(collectionName, startDate, endDa
         else {
             var startDateObjectId = objectIdWithTimestamp(startDate);
             var endDateObjectId = objectIdWithTimestamp(endDate);
+            var minDate, maxDate;
             the_collection.find({'_id': { '$gt': startDateObjectId, '$lt': endDateObjectId}, 'motion' : 'End'}, {'name':1, 'time':1})
                 .toArray(function(error, results){
                     _(results).forEach(function(result){
-                        result.timestamp = ObjectID(result._id).getTimestamp();
+                        result.endTimestamp = ObjectID(result._id).getTimestamp();
+                        result.startTimestamp = moment(result.endTimestamp).subtract(result.time, 'seconds');
+                        delete result._id;
+
+                        if (minDate === undefined) {
+                            minDate = result.startTimestamp;
+                        } else {
+                            if (moment(result.startTimestamp).isBefore(minDate)) {
+                                minDate = result.startTimestamp;
+                            }
+                        }
+                        if (maxDate === undefined) {
+                            maxDate = result.endTimestamp;
+                        } else {
+                            if (moment(result.endTimestamp).isAfter(maxDate)) {
+                                maxDate = result.endTimestamp;
+                            }
+                        }
                     });
-                    callback(null, results);
+                    callback(null, {'values': results, 'maxTimestamp': maxDate, 'minTimestamp': minDate});
                 });
         }
     });
